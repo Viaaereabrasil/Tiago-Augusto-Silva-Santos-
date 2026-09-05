@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "WorkoutHistoryItem": {
+      "title": "WorkoutHistoryItem",
+      "description": "Completed workout session log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "templateId": { "type": "string" },
+        "title": { "type": "string" },
+        "exercises": { "type": "array" },
+        "totalTonnage": { "type": "number" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "date", "templateId", "title"]
+    },
+    "WorkoutCustomTemplate": {
+      "title": "WorkoutCustomTemplate",
+      "description": "User customized workout routine template",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "exercises": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title"]
+    },
+    "UserSchedule": {
+      "title": "UserSchedule",
+      "description": "Weekly workout plan, alarms and overrides",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "weeklyPlan": { "type": "object" },
+        "customDays": { "type": "object" },
+        "alarm": { "type": "object" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "users/{userId}/history/{sessionId}": {
+      "schema": "WorkoutHistoryItem",
+      "description": "History of workout sessions for this user"
+    },
+    "users/{userId}/templates/{templateId}": {
+      "schema": "WorkoutCustomTemplate",
+      "description": "Custom templates for this user"
+    },
+    "users/{userId}/schedule/current": {
+      "schema": "UserSchedule",
+      "description": "Schedule and alarm configuration for this user"
+    }
+  }
+}

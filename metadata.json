@@ -1,0 +1,8 @@
+{
+  "name": "Remix Diário de Treino - v1",
+  "description": "Aplicativo de registro e progressão de treinos de musculação (Superior A/B e Inferiores A/B) com gráficos interativos de tonelagem total e força (Recharts), vídeos explicativos, calendário inteligente, cargas, repetições, RIR e histórico.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
