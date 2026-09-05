@@ -306,6 +306,15 @@ export const TodayWorkoutFloatingWidget: React.FC<TodayWorkoutFloatingWidgetProp
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    id="btn-quick-start-rest"
+                    onClick={() => handleStart('rest')}
+                    className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black text-xs shrink-0 flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-cyan-500/20"
+                  >
+                    <Coffee className="w-3.5 h-3.5" />
+                    <span>Confirmar Descanso</span>
+                  </button>
+                  <button
+                    type="button"
                     id="btn-quick-start-inferiores"
                     onClick={() => {
                       const lower = templates.find(t => t.id === 'inferiores-a') || templates[0];
@@ -315,7 +324,8 @@ export const TodayWorkoutFloatingWidget: React.FC<TodayWorkoutFloatingWidgetProp
                     className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-xs shrink-0 flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-amber-500/20"
                   >
                     <Dumbbell className="w-3.5 h-3.5" />
-                    <span>Iniciar Treino de Inferiores</span>
+                    <span className="hidden sm:inline">Treinar Inferiores</span>
+                    <span className="sm:hidden">Treinar</span>
                   </button>
                 </div>
               </div>

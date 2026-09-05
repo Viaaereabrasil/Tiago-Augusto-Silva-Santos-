@@ -878,23 +878,33 @@ export default function App() {
 
         {/* List of Exercises */}
         <div className="space-y-3 sm:space-y-4">
-          {currentSession.exercises.map((exercise, idx) => (
-            <ExerciseCard
-              key={exercise.id}
-              exercise={exercise}
-              exerciseIndex={idx}
-              onUpdateExercise={handleUpdateExercise}
-              onOpenPlateCalc={(name, defaultKg) => {
-                setPlateCalcTarget({ name, kg: defaultKg });
-                setShowPlateCalc(true);
-              }}
-              onSetCompletedToggle={handleSetCompletedToggle}
-              onOpenRirInfo={() => setShowRirGuide(true)}
-              onOpenExerciseGuide={(name, tab) => handleOpenExerciseGuide(name, tab || 'execucao')}
-              onOpenVideo={(name) => handleOpenExerciseGuide(name, 'video')}
-              onOpenFocusMode={(focusIdx) => setFocusExerciseIndex(focusIdx)}
-            />
-          ))}
+          {currentSession.exercises.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-900/40 rounded-3xl border border-zinc-800 border-dashed text-center">
+              <span className="text-4xl mb-4">☕</span>
+              <h3 className="text-xl font-bold text-white mb-2">Dia de Descanso</h3>
+              <p className="text-sm text-zinc-400 max-w-sm">
+                Nenhum exercício programado. Clique em "Concluir Treino" no topo para registrar o descanso no seu histórico.
+              </p>
+            </div>
+          ) : (
+            currentSession.exercises.map((exercise, idx) => (
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                exerciseIndex={idx}
+                onUpdateExercise={handleUpdateExercise}
+                onOpenPlateCalc={(name, defaultKg) => {
+                  setPlateCalcTarget({ name, kg: defaultKg });
+                  setShowPlateCalc(true);
+                }}
+                onSetCompletedToggle={handleSetCompletedToggle}
+                onOpenRirInfo={() => setShowRirGuide(true)}
+                onOpenExerciseGuide={(name, tab) => handleOpenExerciseGuide(name, tab || 'execucao')}
+                onOpenVideo={(name) => handleOpenExerciseGuide(name, 'video')}
+                onOpenFocusMode={(focusIdx) => setFocusExerciseIndex(focusIdx)}
+              />
+            ))
+          )}
         </div>
 
         {/* Add Exercise CTA button */}

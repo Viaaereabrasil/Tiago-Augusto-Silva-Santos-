@@ -433,4 +433,11 @@ export const INITIAL_WORKOUT_TEMPLATES: WorkoutTemplate[] = [
       },
     ],
   },
+  {
+    id: 'rest',
+    title: 'DIA DE DESCANSO',
+    subtitle: 'Recuperação Muscular & Repouso',
+    tag: 'Off',
+    exercises: [],
+  }
 ];

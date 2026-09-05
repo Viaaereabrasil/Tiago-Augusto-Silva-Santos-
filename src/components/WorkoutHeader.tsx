@@ -212,26 +212,6 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
 
             {/* Mobile Actions Toolbar with spacious auto-wrapping */}
             <div className="flex sm:hidden items-center flex-wrap gap-2">
-              {onOpenPWAInstall && (
-                <button
-                  id="btn-install-pwa-mobile"
-                  onClick={onOpenPWAInstall}
-                  title="Instalar App no Celular"
-                  className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 hover:bg-amber-500/30 transition active:scale-90"
-                >
-                  <Smartphone className="w-4 h-4" />
-                </button>
-              )}
-              {onOpenAlarm && (
-                <button
-                  id="btn-alarm-mobile"
-                  onClick={onOpenAlarm}
-                  title="Alarme e Horários de Treino"
-                  className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition active:scale-90"
-                >
-                  <BellRing className="w-4 h-4" />
-                </button>
-              )}
               {onOpenProgressionChart && (
                 <button
                   id="btn-progression-mobile"
@@ -250,16 +230,6 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                   className="p-2 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/25 transition active:scale-90"
                 >
                   <CalendarCheck className="w-4 h-4" />
-                </button>
-              )}
-              {onOpenExerciseGuide && (
-                <button
-                  id="btn-guide-mobile"
-                  onClick={onOpenExerciseGuide}
-                  title="Guia & Exemplos de Exercícios"
-                  className="p-2 rounded-xl bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700 transition active:scale-90"
-                >
-                  <BookOpen className="w-4 h-4" />
                 </button>
               )}
               <button
@@ -333,18 +303,6 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                 onOpenAuthModal={onOpenAuthModal}
               />
             </div>
-
-            {nextAlarmDisplay && onOpenAlarm && (
-              <button
-                id="btn-next-alarm-badge"
-                onClick={onOpenAlarm}
-                title="Clique para configurar ou ajustar o alarme de treino"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold transition active:scale-95"
-              >
-                <BellRing className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
-                <span>Alarme: {nextAlarmDisplay}</span>
-              </button>
-            )}
 
             {/* LIVE CLOCK: HORA CERTA */}
             <div
@@ -430,30 +388,6 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
               </button>
             </div>
 
-            {onOpenPWAInstall && (
-              <button
-                id="btn-pwa-desktop"
-                onClick={onOpenPWAInstall}
-                className="hidden sm:flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-zinc-950 shadow-sm shadow-amber-500/20 transition active:scale-95"
-                title="Instalar aplicativo no seu celular ou computador"
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>Instalar App</span>
-              </button>
-            )}
-
-            {onOpenAlarm && (
-              <button
-                id="btn-alarm-desktop"
-                onClick={onOpenAlarm}
-                className="hidden sm:flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 transition active:scale-95 shadow-sm"
-                title="Configurar Horários e Alarme de Treino"
-              >
-                <BellRing className="w-4 h-4" />
-                <span>Alarme</span>
-              </button>
-            )}
-
             {onOpenProgressionChart && (
               <button
                 id="btn-progression-desktop"
@@ -475,18 +409,6 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
               >
                 <CalendarCheck className="w-4 h-4" />
                 <span>Calendário</span>
-              </button>
-            )}
-
-            {onOpenExerciseGuide && (
-              <button
-                id="btn-exercise-guide-desktop"
-                onClick={onOpenExerciseGuide}
-                className="hidden md:flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-750 text-zinc-300 border border-zinc-700 transition active:scale-95 shadow-sm"
-                title="Ver exemplos e como executar cada exercício"
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>Exemplos & Guia</span>
               </button>
             )}
 
