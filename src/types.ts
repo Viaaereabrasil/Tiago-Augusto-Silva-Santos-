@@ -68,7 +68,10 @@ export interface WorkoutAlarmSettings {
 
 export interface WorkoutScheduleState {
   // Day of week mapping: 0 = Domingo, 1 = Segunda, 2 = Terça, 3 = Quarta, 4 = Quinta, 5 = Sexta, 6 = Sábado
-  weeklyPlan: Record<number, string>; // templateId or 'rest'
+  scheduleMode?: 'weekly' | 'continuous';
+  weeklyPlan: Record<number, string>;
+  continuousPlan?: string[];
+  continuousStartDate?: string; // templateId or 'rest'
   // Date-specific overrides: 'YYYY-MM-DD' -> DaySchedule
   customDays: Record<string, DaySchedule>;
   // Global & recurring alarm settings

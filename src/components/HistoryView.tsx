@@ -395,6 +395,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                             </div>
                           )}
 
+                          {sess.exercises.length === 0 && (
+                            <div className="text-center py-6">
+                              <span className="text-3xl mb-2 block">☕</span>
+                              <div className="text-sm font-bold text-zinc-300">Descanso Registrado</div>
+                              <div className="text-xs text-zinc-500 mt-1">Recuperação muscular concluída.</div>
+                            </div>
+                          )}
                           {sess.exercises.map((ex) => (
                             <div key={ex.id} className="p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800/60">
                               <span className="font-bold text-zinc-200 block mb-1.5">{ex.name}</span>

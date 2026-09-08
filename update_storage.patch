@@ -1,0 +1,55 @@
+--- src/utils/storage.ts
++++ src/utils/storage.ts
+@@ -172,6 +172,21 @@
+   return null;
+ }
+ 
++function addDaysToDateStr(dateStr: string, days: number): string {
++  const [y, m, d] = dateStr.split('-').map(Number);
++  const date = new Date(y, m - 1, d);
++  date.setDate(date.getDate() + days);
++  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
++}
++
++function getDaysDifference(startStr: string, endStr: string): number {
++  const [sy, sm, sd] = startStr.split('-').map(Number);
++  const [ey, em, ed] = endStr.split('-').map(Number);
++  const start = new Date(sy, sm - 1, sd, 12, 0, 0);
++  const end = new Date(ey, em - 1, ed, 12, 0, 0);
++  return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
++}
++
+ export function getScheduledWorkoutForDate(dateStr: string, schedule?: WorkoutScheduleState): {
+   templateId: string;
+   isRest: boolean;
+@@ -191,6 +206,30 @@
+     };
+   }
+ 
++  // Continuous Mode
++  if (sched.scheduleMode === 'continuous' && sched.continuousPlan && sched.continuousPlan.length > 0 && sched.continuousStartDate) {
++    const diff = getDaysDifference(sched.continuousStartDate, dateStr);
++    
++    if (diff >= 0) {
++      let pointer = 0;
++      for (let i = 0; i < diff; i++) {
++        const iterDateStr = addDaysToDateStr(sched.continuousStartDate, i);
++        const override = sched.customDays[iterDateStr];
++        if (override && (override.templateId === 'rest' || override.isRest)) {
++          // Rest day override -> do not advance pointer
++        } else {
++          pointer = (pointer + 1) % sched.continuousPlan.length;
++        }
++      }
++      const planTemplateId = sched.continuousPlan[pointer];
++      return {
++        templateId: planTemplateId,
++        isRest: planTemplateId === 'rest',
++        isCustom: false,
++      };
++    }
++  }
++
+   // Fallback to weekly plan
+   const [y, m, d] = dateStr.split('-').map(Number);
+   const dateObj = new Date(y, m - 1, d);

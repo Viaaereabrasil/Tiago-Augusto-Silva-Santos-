@@ -74,13 +74,19 @@ export function loadSchedule(): WorkoutScheduleState {
         weeklyPlan,
         customDays: parsed.customDays || {},
         alarm: { ...DEFAULT_ALARM_SETTINGS, ...(parsed.alarm || {}) },
+        scheduleMode: parsed.scheduleMode || 'continuous',
+        continuousPlan: parsed.continuousPlan || ['inferiores-a', 'superior-a', 'inferiores-b', 'superior-b'],
+        continuousStartDate: parsed.continuousStartDate || new Date().toISOString().slice(0, 10),
       };
     }
   } catch (err) {
     console.error('Error loading schedule:', err);
   }
   return {
+    scheduleMode: 'continuous',
     weeklyPlan: DEFAULT_WEEKLY_PLAN,
+    continuousPlan: ['inferiores-a', 'superior-a', 'inferiores-b', 'superior-b'],
+    continuousStartDate: new Date().toISOString().slice(0, 10),
     customDays: {},
     alarm: DEFAULT_ALARM_SETTINGS,
   };
@@ -172,6 +178,21 @@ export function getNextScheduledAlarm(schedule?: WorkoutScheduleState): {
   return null;
 }
 
+function addDaysToDateStr(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function getDaysDifference(startStr: string, endStr: string): number {
+  const [sy, sm, sd] = startStr.split('-').map(Number);
+  const [ey, em, ed] = endStr.split('-').map(Number);
+  const start = new Date(sy, sm - 1, sd, 12, 0, 0);
+  const end = new Date(ey, em - 1, ed, 12, 0, 0);
+  return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export function getScheduledWorkoutForDate(dateStr: string, schedule?: WorkoutScheduleState): {
   templateId: string;
   isRest: boolean;
@@ -189,6 +210,62 @@ export function getScheduledWorkoutForDate(dateStr: string, schedule?: WorkoutSc
       isCustom: true,
       notes: custom.notes,
     };
+  }
+
+  // Continuous Mode
+  if (sched.scheduleMode === 'continuous' && sched.continuousPlan && sched.continuousPlan.length > 0 && sched.continuousStartDate) {
+    const diff = getDaysDifference(sched.continuousStartDate, dateStr);
+    const history = loadHistory();
+    const historyMap = new Map();
+    for (const h of history) {
+      historyMap.set(h.date, h);
+    }
+    
+    if (diff >= 0) {
+      let pointer = 0;
+      for (let i = 0; i < diff; i++) {
+        const iterDateStr = addDaysToDateStr(sched.continuousStartDate, i);
+        const override = sched.customDays[iterDateStr];
+        const histSession = historyMap.get(iterDateStr);
+        
+        const isRestOverride = override && (override.templateId === 'rest' || !!override.isRest);
+        const isRestHistory = histSession && (histSession.templateId === 'rest' || (histSession.exercises && histSession.exercises.length === 0));
+
+        if (isRestOverride || isRestHistory) {
+          // Rest day override or history -> do not advance pointer (this pushes the schedule forward!)
+        } else {
+          pointer = (pointer + 1) % sched.continuousPlan.length;
+        }
+      }
+      const planTemplateId = sched.continuousPlan[pointer];
+      return {
+        templateId: planTemplateId,
+        isRest: planTemplateId === 'rest',
+        isCustom: false,
+      };
+    } else {
+      let pointer = 0;
+      for (let i = -1; i >= diff; i--) {
+        const iterDateStr = addDaysToDateStr(sched.continuousStartDate, i);
+        const override = sched.customDays[iterDateStr];
+        const histSession = historyMap.get(iterDateStr);
+        
+        const isRestOverride = override && (override.templateId === 'rest' || !!override.isRest);
+        const isRestHistory = histSession && (histSession.templateId === 'rest' || (histSession.exercises && histSession.exercises.length === 0));
+
+        if (isRestOverride || isRestHistory) {
+          // Rest day override or history -> do not move pointer backwards
+        } else {
+          pointer = (pointer - 1 + sched.continuousPlan.length) % sched.continuousPlan.length;
+        }
+      }
+      const planTemplateId = sched.continuousPlan[pointer];
+      return {
+        templateId: planTemplateId,
+        isRest: planTemplateId === 'rest',
+        isCustom: false,
+      };
+    }
   }
 
   // Fallback to weekly plan

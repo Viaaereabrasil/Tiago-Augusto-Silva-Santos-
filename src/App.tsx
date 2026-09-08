@@ -18,7 +18,8 @@ import {
   TrendingUp,
   MessageCircle,
   FileText,
-  HelpCircle
+  HelpCircle,
+  Coffee
 } from 'lucide-react';
 import { WorkoutSession, Exercise, WorkoutSet, WorkoutTemplate } from './types';
 import { INITIAL_WORKOUT_TEMPLATES } from './data/workoutTemplates';
@@ -36,6 +37,8 @@ import {
 import { sounds } from './utils/audio';
 import { WorkoutHeader } from './components/WorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
+import { DailyDecision } from './components/DailyDecision';
+import { WorkoutPostSummary } from './components/WorkoutPostSummary';
 import { RestTimerModal } from './components/RestTimerModal';
 import { PlateCalculatorModal } from './components/PlateCalculatorModal';
 import { RirGuideModal } from './components/RirGuideModal';
@@ -427,6 +430,22 @@ export default function App() {
     setCurrentSession((prev) => ({ ...prev, date: newDate }));
   };
 
+  const handleTimeChange = (newTime: string) => {
+    setCurrentSession((prev) => {
+      // newTime is "HH:mm". Update the startTime but preserve the Date if possible, or just set as HH:mm
+      // Let's create a new Date string by taking the current date + new time
+      const parts = newTime.split(':');
+      if (parts.length === 2) {
+        let d = new Date(prev.startTime);
+        if (isNaN(d.getTime())) d = new Date();
+        d.setHours(parseInt(parts[0], 10));
+        d.setMinutes(parseInt(parts[1], 10));
+        return { ...prev, startTime: d.toISOString() };
+      }
+      return { ...prev, startTime: newTime };
+    });
+  };
+
   const handleUpdateExercise = (updatedExercise: Exercise) => {
     setCurrentSession((prev) => {
       const newExercises = prev.exercises.map((e) => (e.id === updatedExercise.id ? updatedExercise : e));
@@ -568,6 +587,7 @@ export default function App() {
         onSelectTemplate={handleSelectTemplate}
         templates={templates.map((t) => ({ id: t.id, title: t.title, tag: t.tag }))}
         onDateChange={handleDateChange}
+        onTimeChange={handleTimeChange}
         onFinishWorkout={handleFinishWorkout}
         onResetWorkout={handleResetWorkout}
         onOpenHistory={() => handleOpenHistoryWithTab('list')}
@@ -616,6 +636,17 @@ export default function App() {
         </div>
       )}
 
+      {workoutFinishedCelebration ? (
+        <WorkoutPostSummary 
+          session={currentSession}
+          onShare={() => setShowWhatsAppModal(true)}
+          onFinish={() => {
+            setWorkoutFinishedCelebration(false);
+            handleResetWorkout();
+          }}
+        />
+      ) : (
+        <>
       {/* Main Content Area */}
       <main className="max-w-5xl mx-auto w-full px-2.5 sm:px-4 pt-3 sm:pt-6 pb-24 sm:pb-28 flex-1 space-y-3 sm:space-y-4">
         {/* Today's Scheduled Workout & Quick Start Card (Inline) */}
@@ -876,6 +907,9 @@ export default function App() {
           </button>
         </div>
 
+        {/* Decisão do Dia */}
+        <DailyDecision exercises={currentSession.exercises} />
+
         {/* List of Exercises */}
         <div className="space-y-3 sm:space-y-4">
           {currentSession.exercises.length === 0 ? (
@@ -1063,14 +1097,20 @@ export default function App() {
             <button
               id="btn-nav-finish"
               onClick={handleFinishWorkout}
-              className="px-3.5 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs flex items-center gap-2 transition active:scale-95 shadow-lg shadow-amber-500/20"
+              className={`px-3.5 sm:px-5 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 transition active:scale-95 shadow-lg ${
+                currentSession.exercises.length === 0
+                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-zinc-950 shadow-emerald-500/20'
+                  : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 shadow-amber-500/20'
+              }`}
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Concluir ({completedSets}/{totalSets})</span>
+              {currentSession.exercises.length === 0 ? <Coffee className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+              <span>{currentSession.exercises.length === 0 ? 'Concluir Descanso' : `Concluir (${completedSets}/${totalSets})`}</span>
             </button>
           </div>
         </div>
       </nav>
+      </>
+      )}
 
       {/* Modals */}
       <RestTimerModal
