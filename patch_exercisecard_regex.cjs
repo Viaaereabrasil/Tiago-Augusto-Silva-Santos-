@@ -1,24 +1,8 @@
 const fs = require('fs');
 let code = fs.readFileSync('src/components/ExerciseCard.tsx', 'utf8');
 
-const importsTarget = `import { 
-  Check, 
-  Plus, 
-  Trash2, 
-  Flame, 
-  Info, 
-  Scale, 
-  ChevronRight, 
-  History, 
-  Layers, 
-  Sparkles,
-  HelpCircle,
-  BookOpen,
-  Play,
-  Video,
-  Maximize2
-} from 'lucide-react';`;
-
+// Update imports
+const importsRegex = /import \{\s*Check,[\s\S]*?Maximize2\n\} from 'lucide-react';/;
 const importsRepl = `import { 
   Check, 
   Plus, 
@@ -39,11 +23,10 @@ const importsRepl = `import {
   Video,
   Maximize2
 } from 'lucide-react';`;
-code = code.replace(importsTarget, importsRepl);
+code = code.replace(importsRegex, importsRepl);
 
-const stateTarget = `  const [showNotes, setShowNotes] = useState<boolean>(false);
-  const lastPerf = getLastPerformanceForExercise(exercise.name);`;
-
+// Update state
+const stateRegex = /  const \[showNotes, setShowNotes\] = useState<boolean>\(false\);\n  const lastPerf = getLastPerformanceForExercise\(exercise\.name\);/;
 const stateRepl = `  const [showNotes, setShowNotes] = useState<boolean>(false);
   const [stopwatchSeconds, setStopwatchSeconds] = useState<number>(0);
   const [isStopwatchRunning, setIsStopwatchRunning] = useState<boolean>(false);
@@ -65,24 +48,11 @@ const stateRepl = `  const [showNotes, setShowNotes] = useState<boolean>(false);
     const s = secs % 60;
     return \`\${m.toString().padStart(2, '0')}:\${s.toString().padStart(2, '0')}\`;
   };`;
-code = code.replace(stateTarget, stateRepl);
+code = code.replace(stateRegex, stateRepl);
 
-const footerTarget = `      {/* Card Footer: Add Set CTA */}
-      <div className="px-3 sm:px-3.5 py-2 sm:py-2.5 bg-zinc-900/60 border-t border-zinc-800/80 flex items-center justify-between">
-        <button
-          id={\`btn-add-set-\${exercise.id}\`}
-          onClick={handleAddSet}
-          className="text-xs font-semibold text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 flex items-center gap-1.5 transition active:scale-95"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Adicionar Série</span>
-        </button>
-        <span className="text-[10px] sm:text-[11px] font-medium text-zinc-400">
-          {completedCount} de {exercise.sets.length} concluídas
-        </span>
-      </div>`;
-
-const footerRepl = `      {/* Card Footer: Add Set CTA & Local Stopwatch */}
+// Update footer
+const footerRegex = /\{\/\* Card Footer: Add Set CTA \*\/\}[\s\S]*?concluídas\n        <\/span>\n      <\/div>/;
+const footerRepl = `{/* Card Footer: Add Set CTA & Local Stopwatch */}
       <div className="px-3 sm:px-3.5 py-2 sm:py-2.5 bg-zinc-900/60 border-t border-zinc-800/80 flex items-center justify-between gap-2 flex-wrap">
         <button
           id={\`btn-add-set-\${exercise.id}\`}
@@ -126,7 +96,6 @@ const footerRepl = `      {/* Card Footer: Add Set CTA & Local Stopwatch */}
           {completedCount}/{exercise.sets.length} OK
         </span>
       </div>`;
-
-code = code.replace(footerTarget, footerRepl);
+code = code.replace(footerRegex, footerRepl);
 
 fs.writeFileSync('src/components/ExerciseCard.tsx', code);

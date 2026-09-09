@@ -90,8 +90,6 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
   completedSets,
   totalTonnage,
 }) => {
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
   const [liveClockTime, setLiveClockTime] = useState<string>('');
 
   // Live real-time clock (Hora Certa)
@@ -112,46 +110,6 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
     return () => clearInterval(clockInterval);
   }, []);
 
-  // Initialize elapsed time from session start time
-  useEffect(() => {
-    if (session.startTime) {
-      const start = parseSessionTimestamp(session.date || new Date().toISOString().slice(0, 10), session.startTime);
-      if (start > 0) {
-        const diffSec = Math.max(0, Math.floor((Date.now() - start) / 1000));
-        setElapsedSeconds(isNaN(diffSec) ? 0 : diffSec);
-      }
-    }
-  }, [session.startTime, session.date]);
-
-  // Stopwatch ticking
-  useEffect(() => {
-    if (!isTimerRunning) return;
-    const interval = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isTimerRunning]);
-
-  const handleToggleTimer = () => {
-    soundEngine.playClick();
-    setIsTimerRunning((prev) => !prev);
-  };
-
-  const handleResetTimer = () => {
-    soundEngine.playClick();
-    setElapsedSeconds(0);
-    setIsTimerRunning(true);
-  };
-
-  const formatTime = (secs: number) => {
-    const hours = Math.floor(secs / 3600);
-    const mins = Math.floor((secs % 3600) / 60);
-    const s = secs % 60;
-    if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-    return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
 
   const progressPercent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
@@ -306,20 +264,8 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
               />
             </div>
 
-            {/* LIVE CLOCK: HORA CERTA */}
-            <div
-              id="header-live-clock-badge"
-              className="flex items-center gap-1.5 bg-zinc-800/90 hover:bg-zinc-800 border border-zinc-700/80 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs text-zinc-200 shrink-0 shadow-sm transition"
-              title="Hora Certa (Horário Real Atual)"
-            >
-              <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] uppercase font-bold text-zinc-400 hidden md:inline">Hora Certa:</span>
-                <span className="font-mono font-bold text-emerald-400 tracking-wide">{liveClockTime || '--:--:--'}</span>
-              </div>
-            </div>
-
-                        <div className="flex items-center gap-2 flex-wrap">
+            {/* Workout Date, Clock & Stopwatch Toggle */}
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1.5 bg-zinc-800/80 border border-zinc-700/70 rounded-xl px-2.5 py-1.5 text-xs text-zinc-200">
                 <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
                 <input
@@ -331,85 +277,15 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                 />
               </div>
 
-              <div className="flex items-center gap-1.5 bg-zinc-800/80 border border-zinc-700/70 rounded-xl px-2.5 py-1.5 text-xs text-zinc-200">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-                <input
-                  id="workout-time-input"
-                  type="time"
-                  value={(() => {
-                    if (session.startTime.includes('T')) {
-                      const d = new Date(session.startTime);
-                      if (!isNaN(d.getTime())) {
-                        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-                      }
-                    }
-                    return session.startTime;
-                  })()}
-                  onChange={(e) => onTimeChange(e.target.value)}
-                  className="bg-transparent text-xs font-semibold focus:outline-none text-zinc-200 cursor-pointer w-16 sm:w-auto"
-                />
-              </div>
-            </div>
-
-            {/* Workout Elapsed Interactive Stopwatch / Cronômetro */}
-            <div
-              id="workout-stopwatch-control"
-              className={`flex items-center gap-1.5 border rounded-xl px-2 sm:px-2.5 py-1 text-xs shrink-0 shadow-sm transition ${
-                isTimerRunning
-                  ? 'bg-zinc-800/90 border-amber-500/40 text-zinc-200'
-                  : 'bg-amber-500/10 border-amber-500/50 text-amber-200'
-              }`}
-            >
-              <div className="flex items-center gap-1.5 pr-1 border-r border-zinc-700/80">
-                <Timer
-                  className={`w-3.5 h-3.5 ${
-                    isTimerRunning ? 'text-amber-400 animate-pulse' : 'text-zinc-400'
-                  }`}
-                />
-                <span className="font-mono font-bold text-amber-300 min-w-[38px] text-xs">
-                  {formatTime(elapsedSeconds)}
+              {/* Minimalist Live Clock */}
+              <div className="flex items-center justify-center bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-2.5 py-1.5 shadow-sm">
+                <span className="font-mono font-bold tracking-wider text-xs text-zinc-300">
+                  {liveClockTime || '00:00:00'}
                 </span>
-                {!isTimerRunning && (
-                  <span className="text-[9px] font-bold uppercase px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 hidden md:inline">
-                    Pausado
-                  </span>
-                )}
               </div>
-
-              {/* Start / Pause Button */}
-              <button
-                id="btn-timer-toggle"
-                type="button"
-                onClick={handleToggleTimer}
-                className={`p-1 rounded-lg transition active:scale-90 flex items-center gap-1 text-[11px] font-bold ${
-                  isTimerRunning
-                    ? 'hover:bg-zinc-700 text-zinc-300 hover:text-amber-300'
-                    : 'bg-amber-500 text-zinc-950 px-1.5 shadow-sm font-black'
-                }`}
-                title={isTimerRunning ? 'Pausar cronômetro' : 'Iniciar / Continuar cronômetro'}
-              >
-                {isTimerRunning ? (
-                  <Pause className="w-3.5 h-3.5" />
-                ) : (
-                  <>
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span className="text-[10px]">Start</span>
-                  </>
-                )}
-              </button>
-
-              {/* Zerar (Reset) Button */}
-              <button
-                id="btn-timer-reset"
-                type="button"
-                onClick={handleResetTimer}
-                className="p-1 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-700/70 transition active:scale-90 flex items-center gap-1 text-[11px] font-bold"
-                title="Zerar cronômetro (00:00)"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="text-[10px]">Zerar</span>
-              </button>
             </div>
+              
+              
 
             {onOpenProgressionChart && (
               <button

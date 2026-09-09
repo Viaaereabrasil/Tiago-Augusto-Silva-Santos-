@@ -945,8 +945,10 @@ export default function App() {
           </button>
         </div>
 
-        {/* Decisão do Dia */}
-        <DailyDecision exercises={currentSession.exercises} />
+        {/* Decisão do Dia - Ocultado a pedido do usuário */}
+        <div className="hidden">
+          <DailyDecision exercises={currentSession.exercises} />
+        </div>
 
         {/* List of Exercises */}
         <div className="space-y-3 sm:space-y-4">
@@ -1067,6 +1069,10 @@ export default function App() {
               <span>Salvo em localStorage</span>
             </span>
           </div>
+        </div>
+
+        <div className="mt-8 mb-4 text-center">
+          <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-zinc-600">Powered by Netlify</span>
         </div>
       </main>
 
