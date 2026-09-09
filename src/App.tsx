@@ -538,9 +538,11 @@ export default function App() {
   };
 
   const handleFinishWorkout = () => {
-    const endTime = new Date().toISOString();
+    const isEditingPast = currentSession.completed === true;
+    const endTime = isEditingPast && currentSession.endTime ? currentSession.endTime : new Date().toISOString();
     const startTime = parseSessionTimestamp(currentSession.date, currentSession.startTime);
-    const durationMins = startTime > 0 ? Math.max(1, Math.round((Date.now() - startTime) / 60000)) : 45;
+    const calculatedDuration = startTime > 0 ? Math.max(1, Math.round((Date.now() - startTime) / 60000)) : 45;
+    const durationMins = isEditingPast && currentSession.durationMinutes ? currentSession.durationMinutes : calculatedDuration;
 
     const completedSession: WorkoutSession = {
       ...currentSession,
@@ -1271,6 +1273,11 @@ export default function App() {
         onClose={() => setShowCalendarModal(false)}
         templates={templates}
         onSelectAndStartWorkout={handleSelectTemplate}
+        onEditSession={(sess) => {
+          setCurrentSession(sess);
+          setShowCalendarModal(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         currentActiveSession={currentSession}
         initialTab={calendarInitialTab}
         onTriggerTestAlarm={handleTriggerManualAlarmTest}

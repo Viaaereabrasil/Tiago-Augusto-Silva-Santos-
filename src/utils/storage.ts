@@ -609,11 +609,13 @@ export function generateFullBackupObject(): FullBackupPayload {
   };
 }
 
-export function downloadBackupJSON(): {
+export function downloadBackupJSON(autoDownload = true): {
   filename: string;
   fileSizeBytes: number;
   historyCount: number;
   templatesCount: number;
+  file?: File;
+  blob: Blob;
 } {
   const backup = generateFullBackupObject();
   const jsonString = JSON.stringify(backup, null, 2);
@@ -627,21 +629,32 @@ export function downloadBackupJSON(): {
   const min = String(now.getMinutes()).padStart(2, '0');
   const filename = `diario-de-treino-backup-${yyyy}-${mm}-${dd}_${hh}h${min}.json`;
 
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.setAttribute('style', 'display: none');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  let fileObj;
+  try {
+    fileObj = new File([blob], filename, { type: 'application/json' });
+  } catch (e) {
+    console.warn('File constructor not supported');
+  }
+
+  if (autoDownload) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.setAttribute('style', 'display: none');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 
   return {
     filename,
     fileSizeBytes: blob.size,
     historyCount: backup.metadata.historyCount,
     templatesCount: backup.metadata.templatesCount,
+    file: fileObj,
+    blob
   };
 }
 

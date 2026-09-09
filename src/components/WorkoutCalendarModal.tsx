@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import {
-  X,
-  Calendar as CalendarIcon,
+import { X, Calendar as CalendarIcon, Edit, 
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
@@ -46,6 +44,7 @@ interface WorkoutCalendarModalProps {
   onClose: () => void;
   templates: WorkoutTemplate[];
   onSelectAndStartWorkout: (templateId: string) => void;
+  onEditSession?: (session: WorkoutSession) => void;
   currentActiveSession?: WorkoutSession | null;
   initialTab?: 'calendar' | 'weekly_plan' | 'alarm' | 'stats';
   onTriggerTestAlarm?: () => void;
@@ -78,6 +77,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   onClose,
   templates,
   onSelectAndStartWorkout,
+  onEditSession,
   currentActiveSession,
   initialTab = 'calendar',
   onTriggerTestAlarm,
@@ -768,12 +768,21 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
                     </div>
 
                     {selectedDateSessions.map((s, idx) => (
-                      <div key={idx} className="bg-emerald-950/20 p-3 rounded-xl border border-emerald-500/30 space-y-1">
-                        <div className="font-bold text-white text-xs sm:text-sm">{s.title}</div>
+                      <div key={idx} className="bg-emerald-950/20 p-3 rounded-xl border border-emerald-500/30 space-y-1 relative group">
+                        <div className="font-bold text-white text-xs sm:text-sm pr-8">{s.title}</div>
                         <div className="text-xs text-zinc-300 flex items-center gap-3">
                           {s.durationMinutes && <span>⏱ {s.durationMinutes} min</span>}
                           <span>🏋️ {s.exercises?.length || 0} exercícios</span>
                         </div>
+                        {onEditSession && (
+                          <button
+                            onClick={() => onEditSession(s)}
+                            className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 border border-emerald-500/20 transition active:scale-95"
+                            title="Editar treino registrado"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -782,136 +791,95 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
                     Nenhum treino concluído registrado nesta data.
                   </div>
                 )}
-
+                
                 {/* Schedule Status & Override for this day */}
                 <div className="space-y-2.5 pt-1">
                   <label className="text-xs font-bold text-zinc-300 block">
                     Treino Programado para esta data:
                   </label>
-
                   <div className="grid grid-cols-1 gap-1.5">
-                    <button
-                      onClick={() => handleUpdateCustomDay(selectedDateStr, 'superior-a')}
-                      className={`p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
-                        selectedDateScheduled.templateId === 'superior-a' && !selectedDateScheduled.isRest
-                          ? 'bg-amber-500/15 border-amber-400 text-amber-300'
-                          : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800'
-                      }`}
-                    >
-                      <span>Treino Superior A (Costas, Peito, Ombros)</span>
-                      {selectedDateScheduled.templateId === 'superior-a' && !selectedDateScheduled.isRest && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => handleUpdateCustomDay(selectedDateStr, 'inferiores-a')}
-                      className={`p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
-                        selectedDateScheduled.templateId === 'inferiores-a' && !selectedDateScheduled.isRest
-                          ? 'bg-amber-500/15 border-amber-400 text-amber-300'
-                          : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800'
-                      }`}
-                    >
-                      <span>Treino Inferiores A (Posterior & Glúteos)</span>
-                      {selectedDateScheduled.templateId === 'inferiores-a' && !selectedDateScheduled.isRest && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => handleUpdateCustomDay(selectedDateStr, 'superior-b')}
-                      className={`p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
-                        selectedDateScheduled.templateId === 'superior-b' && !selectedDateScheduled.isRest
-                          ? 'bg-amber-500/15 border-amber-400 text-amber-300'
-                          : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800'
-                      }`}
-                    >
-                      <span>Treino Superior B (Peito Sup, Braços)</span>
-                      {selectedDateScheduled.templateId === 'superior-b' && !selectedDateScheduled.isRest && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => handleUpdateCustomDay(selectedDateStr, 'inferiores-b')}
-                      className={`p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
-                        selectedDateScheduled.templateId === 'inferiores-b' && !selectedDateScheduled.isRest
-                          ? 'bg-amber-500/15 border-amber-400 text-amber-300'
-                          : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800'
-                      }`}
-                    >
-                      <span>Treino Inferiores B (Quadríceps & Adutores)</span>
-                      {selectedDateScheduled.templateId === 'inferiores-b' && !selectedDateScheduled.isRest && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
-                      )}
-                    </button>
-
+                    {templates.map((tpl) => {
+                      const isSelected = selectedDateScheduled.templateId === tpl.id && !selectedDateScheduled.isRest;
+                      return (
+                        <button
+                          key={tpl.id}
+                          onClick={() => handleUpdateCustomDay(selectedDateStr, tpl.id)}
+                          className={`p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-amber-500/15 border-amber-400 text-amber-300'
+                              : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800'
+                          }`}
+                        >
+                          <span>{tpl.title}</span>
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-amber-400" />}
+                        </button>
+                      );
+                    })}
                     <button
                       onClick={() => handleUpdateCustomDay(selectedDateStr, 'rest')}
                       className={`p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
                         selectedDateScheduled.isRest
-                          ? 'bg-zinc-800 border-zinc-500 text-zinc-200'
-                          : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border-zinc-800'
+                          ? 'bg-blue-500/15 border-blue-400 text-blue-300'
+                          : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800'
                       }`}
                     >
-                      <span>Dia de Descanso / Off</span>
-                      {selectedDateScheduled.isRest && (
-                        <Coffee className="w-3.5 h-3.5 text-zinc-400" />
-                      )}
+                      <span>Descanso / OFF</span>
+                      {selectedDateScheduled.isRest && <CheckCircle2 className="w-4 h-4 text-blue-400" />}
                     </button>
                   </div>
-
+                  
                   {selectedDateScheduled.isCustom && (
                     <button
                       onClick={() => handleUpdateCustomDay(selectedDateStr, 'default')}
-                      className="text-[11px] text-amber-400 hover:underline flex items-center gap-1 mt-1"
+                      className="w-full mt-2 p-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold transition flex items-center justify-center gap-2"
                     >
-                      <RotateCcw className="w-3 h-3" />
-                      <span>Restaurar plano semanal padrão</span>
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Restaurar Padrão da Semana</span>
                     </button>
                   )}
+                  
                 </div>
 
-                {/* Action button to execute this workout */}
                 {!selectedDateScheduled.isRest && selectedDateScheduled.templateId && (
-                  <div className="pt-2 border-t border-zinc-800">
-                    <button
-                      id="btn-start-day-workout"
-                      onClick={() => {
-                        onSelectAndStartWorkout(selectedDateScheduled.templateId);
-                        onClose();
-                      }}
-                      className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-xs flex items-center justify-center gap-2 transition active:scale-95 shadow-md shadow-amber-500/20"
-                    >
-                      <Play className="w-4 h-4 fill-current" />
-                      <span>Iniciar Treino Programado</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onSelectAndStartWorkout(selectedDateScheduled.templateId);
+                    }}
+                    className="w-full p-3 mt-4 rounded-xl font-black text-sm bg-amber-500 hover:bg-amber-400 text-zinc-950 flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 active:scale-95 transition"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>Iniciar este Treino</span>
+                  </button>
                 )}
               </div>
             </div>
-          )}
+        )}
 
-          {/* TAB 2: ALARMS & TIME SETTINGS */}
-          {activeTab === 'alarm' && (
-            <div className="space-y-6 max-w-3xl mx-auto">
-              {/* Master Alarm Toggle Banner */}
-              <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-950/40 via-zinc-900 to-zinc-900 rounded-2xl border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* ALARMES & LEMBRETES TAB */}
+        {activeTab === 'alarm' && (
+          <div className="p-4 sm:p-6 space-y-6 overflow-y-auto max-h-[70vh]">
+            <div className="space-y-4">
+              {/* Master Toggle Card */}
+              <div className={`p-4 sm:p-5 rounded-2xl border transition-colors flex items-center justify-between gap-4 ${
+                alarmSettings.enabled 
+                  ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/10 border-amber-500/40' 
+                  : 'bg-zinc-850 border-zinc-800'
+              }`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-                    <BellRing className="w-6 h-6 animate-pulse" />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    alarmSettings.enabled ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20' : 'bg-zinc-800 text-zinc-400'
+                  }`}>
+                    <BellRing className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-white">
-                      Alarme Sonoro & Lembrete de Treino
-                    </h3>
-                    <p className="text-xs text-zinc-300 mt-0.5">
-                      Dispara alarme com som motivacional e vibração no horário do seu treino.
+                    <h3 className="font-black text-white text-sm sm:text-base">Notificações de Treino</h3>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      {alarmSettings.enabled ? 'Alarmes ativados para dias de treino' : 'Todos os alarmes desativados'}
                     </p>
                   </div>
                 </div>
-
-                <label className="relative inline-flex items-center cursor-pointer self-end sm:self-center">
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
                   <input
                     type="checkbox"
                     checked={alarmSettings.enabled}
@@ -1108,6 +1076,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
                 </button>
               </div>
             </div>
+          </div>
           )}
 
           {/* TAB 3: WEEKLY SCHEDULE SPLIT PLANNER */}

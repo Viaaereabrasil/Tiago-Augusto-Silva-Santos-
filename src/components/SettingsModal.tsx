@@ -68,10 +68,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const historyCount = loadHistory().length;
   const templatesCount = loadTemplates().length;
 
-  const handleDownloadBackup = () => {
+  const handleDownloadBackup = async () => {
     try {
-      const res = downloadBackupJSON();
-      setDownloadSuccess(`Backup baixado: ${res.filename} (${(res.fileSizeBytes / 1024).toFixed(1)} KB)`);
+      const res = downloadBackupJSON(false);
+      let shared = false;
+      
+      // Attempt to use native share (mobile) to allow saving to cloud directly
+      if (navigator.share && res.file) {
+        try {
+          await navigator.share({
+            title: 'Backup Diário de Treino',
+            text: 'Aqui está o backup dos meus treinos.',
+            files: [res.file]
+          });
+          shared = true;
+        } catch (shareErr) {
+          console.log('Share API falhou ou foi cancelada, baixando normal...');
+        }
+      }
+
+      if (!shared) {
+        const url = URL.createObjectURL(res.blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = res.filename;
+        link.setAttribute('style', 'display: none');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      setDownloadSuccess(`Backup exportado: ${res.filename} (${(res.fileSizeBytes / 1024).toFixed(1)} KB)`);
       setRestoreStatus(null);
       setTimeout(() => {
         setDownloadSuccess(null);
