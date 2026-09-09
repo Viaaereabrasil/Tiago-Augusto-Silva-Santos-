@@ -83,6 +83,7 @@ import { OfflineSyncModal } from './components/OfflineSyncModal';
 import { TodayWorkoutFloatingWidget } from './components/TodayWorkoutFloatingWidget';
 import { PWAInstallModal } from './components/PWAInstallModal';
 import { AuthModal } from './components/AuthModal';
+import { ToolsModal } from './components/ToolsModal';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { CalendarCheck, Play, Video, BellRing, Bell, WifiOff, CloudOff, RefreshCw, AlertTriangle, CheckCircle, Smartphone } from 'lucide-react';
 
@@ -128,6 +129,7 @@ export default function App() {
   const [showRirGuide, setShowRirGuide] = useState<boolean>(false);
   const [showWhatsAppModal, setShowWhatsAppModal] = useState<boolean>(false);
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
+  const [showToolsModal, setShowToolsModal] = useState<boolean>(false);
   const [historyModalTab, setHistoryModalTab] = useState<'charts' | 'list'>('charts');
   const [show1RmModal, setShow1RmModal] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
@@ -509,6 +511,32 @@ export default function App() {
     setShowResetConfirmModal(false);
   };
 
+  const handleLogRestDay = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const endTime = new Date().toISOString();
+    const restSession: WorkoutSession = {
+      id: `session-rest-${Date.now()}`,
+      templateId: 'rest',
+      title: 'DIA DE DESCANSO',
+      date: today,
+      startTime: endTime,
+      endTime: endTime,
+      exercises: [],
+      completed: true,
+      durationMinutes: 0,
+      notes: 'Recuperação muscular',
+    };
+    
+    addSessionToHistory(restSession);
+    
+    // Save to Firestore if authenticated
+    if (authUser) {
+      saveSessionToCloud(authUser.uid, restSession);
+    }
+    
+    setWorkoutFinishedCelebration(true);
+  };
+
   const handleFinishWorkout = () => {
     const endTime = new Date().toISOString();
     const startTime = parseSessionTimestamp(currentSession.date, currentSession.startTime);
@@ -580,7 +608,7 @@ export default function App() {
   }, 0);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans pb-28">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans pb-[160px]">
       {/* Primary Sticky Header */}
       <WorkoutHeader
         session={currentSession}
@@ -818,6 +846,16 @@ export default function App() {
             )}
 
             <button
+              id="btn-log-rest-day"
+              onClick={handleLogRestDay}
+              className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95"
+              title="Registrar um dia de descanso no histórico"
+            >
+              <Coffee className="w-4 h-4 text-zinc-400" />
+              <span>Descanso</span>
+            </button>
+
+            <button
               id="btn-open-alarm-banner"
               onClick={() => handleOpenCalendarWithTab('alarm')}
               className="px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition active:scale-95"
@@ -1032,87 +1070,84 @@ export default function App() {
         </div>
       </main>
 
-      {/* Floating Bottom Action Bar with auto-wrap and spacious icons */}
-      <nav className="fixed bottom-0 inset-x-0 bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800/80 px-3 sm:px-5 py-2.5 sm:py-3 z-20 shadow-2xl safe-bottom">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <button
-              id="btn-nav-alarm"
-              onClick={() => handleOpenCalendarWithTab('alarm')}
-              className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 text-amber-400 flex items-center gap-2 text-xs font-bold transition active:scale-95 relative"
-              title="Alarme e Horários de Treino"
-            >
-              <BellRing className="w-4 h-4" />
-              <span className="hidden md:inline">Alarme</span>
-              {nextAlarmInfo && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-              )}
-            </button>
+            {/* Floating Concluir Button (Placed above bottom nav) */}
+      <div className="fixed bottom-[72px] sm:bottom-[80px] inset-x-0 px-4 z-20 pointer-events-none flex justify-center">
+        <button
+          id="btn-nav-finish"
+          onClick={handleFinishWorkout}
+          className={`pointer-events-auto w-full max-w-[360px] px-6 py-3.5 sm:py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-2xl ${
+            currentSession.exercises.length === 0
+              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-zinc-950 shadow-emerald-500/20'
+              : 'bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 shadow-amber-500/20'
+          }`}
+        >
+          {currentSession.exercises.length === 0 ? <Coffee className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+          <span>{currentSession.exercises.length === 0 ? 'Concluir Descanso' : `Concluir Treino (${completedSets}/${totalSets})`}</span>
+        </button>
+      </div>
 
-            <button
-              id="btn-nav-calendar"
-              onClick={() => handleOpenCalendarWithTab('calendar')}
-              className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-cyan-500/40 text-cyan-400 flex items-center gap-2 text-xs font-bold transition active:scale-95"
-              title="Calendário & Programação de Treinos"
-            >
-              <CalendarCheck className="w-4 h-4" />
-              <span className="hidden md:inline">Calendário</span>
-            </button>
-
-            <button
-              id="btn-nav-timer"
-              onClick={() => setShowRestTimer(true)}
-              className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 text-amber-400 flex items-center gap-2 text-xs font-bold transition active:scale-95"
-              title="Cronômetro de Descanso"
-            >
-              <Zap className="w-4 h-4" />
-              <span className="hidden md:inline">Descanso</span>
-            </button>
-
-            <button
-              id="btn-nav-plate"
-              onClick={() => {
-                setPlateCalcTarget({ name: 'Barra Olímpica', kg: 50 });
-                setShowPlateCalc(true);
-              }}
-              className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 flex items-center gap-2 text-xs font-semibold transition active:scale-95"
-              title="Calculadora de Anilhas"
-            >
-              <Scale className="w-4 h-4 text-amber-400" />
-              <span className="hidden md:inline">Anilhas</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <button
-              id="btn-nav-whatsapp"
-              onClick={() => setShowWhatsAppModal(true)}
-              className="px-3 sm:px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-sm"
-              title="Exportar para WhatsApp"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">WhatsApp</span>
-            </button>
-
-            <button
-              id="btn-nav-finish"
-              onClick={handleFinishWorkout}
-              className={`px-3.5 sm:px-5 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 transition active:scale-95 shadow-lg ${
-                currentSession.exercises.length === 0
-                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-zinc-950 shadow-emerald-500/20'
-                  : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 shadow-amber-500/20'
-              }`}
-            >
-              {currentSession.exercises.length === 0 ? <Coffee className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-              <span>{currentSession.exercises.length === 0 ? 'Concluir Descanso' : `Concluir (${completedSets}/${totalSets})`}</span>
-            </button>
-          </div>
+      {/* New Minimalist Bottom Navigation */}
+      <nav className="fixed bottom-0 inset-x-0 bg-black border-t border-zinc-900 px-4 py-2 sm:py-3 z-[100] safe-bottom">
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <button 
+            onClick={() => {
+              setShowHistoryModal(false);
+              setShowToolsModal(false);
+              setShowSettingsModal(false);
+            }}
+            className={`p-3 flex flex-col items-center justify-center transition ${(!showHistoryModal && !showToolsModal && !showSettingsModal) ? 'text-amber-500' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <Dumbbell className="w-[26px] h-[26px] stroke-[1.5]" />
+          </button>
+          
+          <button 
+            onClick={() => {
+              setShowHistoryModal(true);
+              setShowToolsModal(false);
+              setShowSettingsModal(false);
+            }}
+            className={`p-3 flex flex-col items-center justify-center transition ${showHistoryModal ? 'text-amber-500' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <CalendarCheck className="w-[26px] h-[26px] stroke-[1.5]" />
+          </button>
+          
+          <button 
+            onClick={() => {
+              setShowToolsModal(true);
+              setShowHistoryModal(false);
+              setShowSettingsModal(false);
+            }}
+            className={`p-3 flex flex-col items-center justify-center transition ${showToolsModal ? 'text-amber-500' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <Layers className="w-[26px] h-[26px] stroke-[1.5]" />
+          </button>
+          
+          <button 
+            onClick={() => {
+              setShowSettingsModal(true);
+              setShowHistoryModal(false);
+              setShowToolsModal(false);
+            }}
+            className={`p-3 flex flex-col items-center justify-center transition ${showSettingsModal ? 'text-amber-500' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <Settings className="w-[26px] h-[26px] stroke-[1.5]" />
+          </button>
         </div>
       </nav>
       </>
       )}
 
       {/* Modals */}
+      <ToolsModal
+        isOpen={showToolsModal}
+        onClose={() => setShowToolsModal(false)}
+        onOpenAlarm={() => handleOpenCalendarWithTab('alarm')}
+        onOpenTimer={() => setShowRestTimer(true)}
+        onOpenPlates={() => {
+          setPlateCalcTarget({ name: 'Barra Olímpica', kg: 50 });
+          setShowPlateCalc(true);
+        }}
+      />
       <RestTimerModal
         initialSeconds={timerSeconds}
         isOpen={showRestTimer}
@@ -1143,6 +1178,11 @@ export default function App() {
         onClose={() => setShowHistoryModal(false)}
         initialTab={historyModalTab}
         userId={authUser?.uid}
+        onLoadSession={(sess) => {
+          setCurrentSession(sess);
+          setShowHistoryModal(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
 
       <OneRepMaxModal

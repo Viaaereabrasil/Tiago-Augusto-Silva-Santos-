@@ -328,43 +328,49 @@ export function getLastCompletedWorkout(): {
   };
 }
 
-export const WORKOUT_ROTATION_ORDER = ['inferiores-a', 'superior-a', 'inferiores-b', 'superior-b'];
+export const WORKOUT_ROTATION_ORDER = ['superior-a', 'inferiores-a', 'superior-b', 'inferiores-b'];
 
 export function getNextRecommendedWorkout(): {
   templateId: string;
   reason: string;
   basedOnRotation: boolean;
 } {
-  const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const scheduledToday = getScheduledWorkoutForDate(todayStr);
-
-  if (!scheduledToday.isRest && scheduledToday.templateId) {
+  const history = loadHistory();
+  // Se não tem nenhum treino no histórico, assumimos que hoje (08/09/2026) começa no Inferiores A.
+  if (history.length === 0 || !history.some(s => s.completed && WORKOUT_ROTATION_ORDER.includes(s.templateId))) {
     return {
-      templateId: scheduledToday.templateId,
-      reason: 'Programado para hoje no seu calendário',
-      basedOnRotation: false,
+      templateId: 'inferiores-a',
+      reason: 'Início da divisão de treino',
+      basedOnRotation: true,
     };
   }
+  // Find the last completed workout that is part of the rotation
+  // history is already sorted by date desc when saved, but let's be sure it's the most recent one
+  const sortedHistory = [...history].sort((a, b) => {
+    const dateA = new Date(a.endTime || a.date).getTime();
+    const dateB = new Date(b.endTime || b.date).getTime();
+    return dateB - dateA;
+  });
+  
+  const lastRotationWorkout = sortedHistory.find(s => 
+    s.completed && WORKOUT_ROTATION_ORDER.includes(s.templateId)
+  );
 
-  // Check last completed workout in rotation
-  const last = getLastCompletedWorkout();
-  if (last) {
-    const idx = WORKOUT_ROTATION_ORDER.indexOf(last.session.templateId);
+  if (lastRotationWorkout) {
+    const idx = WORKOUT_ROTATION_ORDER.indexOf(lastRotationWorkout.templateId);
     if (idx !== -1) {
       const nextIdx = (idx + 1) % WORKOUT_ROTATION_ORDER.length;
       return {
         templateId: WORKOUT_ROTATION_ORDER[nextIdx],
-        reason: `Sequência natural da divisão após ${last.session.title}`,
+        reason: `Sequência natural da divisão após ${lastRotationWorkout.title}`,
         basedOnRotation: true,
       };
     }
   }
 
-  // Default to inferiores-a
   return {
-    templateId: 'inferiores-a',
-    reason: 'Início da divisão de treino (Foco Inferiores)',
+    templateId: WORKOUT_ROTATION_ORDER[0],
+    reason: 'Início da divisão de treino',
     basedOnRotation: true,
   };
 }

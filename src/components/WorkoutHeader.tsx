@@ -489,15 +489,7 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
               <span className="hidden md:inline">Reiniciar</span>
             </button>
 
-            <button
-              id="btn-finish-workout"
-              onClick={onFinishWorkout}
-              className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs shadow-md shadow-emerald-900/30 flex items-center gap-2 transition active:scale-95"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Concluir Treino</span>
-              <span className="sm:hidden">Concluir</span>
-            </button>
+
           </div>
         </div>
 

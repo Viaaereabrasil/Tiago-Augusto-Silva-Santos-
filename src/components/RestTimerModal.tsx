@@ -89,7 +89,7 @@ export const RestTimerModal: React.FC<RestTimerProps> = ({
       <div
         id="rest-timer-minimized"
         onClick={() => setIsMinimized(false)}
-        className="fixed bottom-5 right-5 z-50 bg-zinc-900 border-2 border-amber-500 rounded-full shadow-2xl p-2.5 flex items-center gap-2 cursor-pointer hover:scale-105 transition-all group"
+        className="fixed bottom-24 right-4 sm:bottom-24 sm:right-6 z-50 bg-zinc-900 border-2 border-amber-500 rounded-full shadow-2xl p-2.5 flex items-center gap-2 cursor-pointer hover:scale-105 transition-all group"
       >
         <div className={`w-3 h-3 rounded-full ${isRunning ? 'bg-amber-400 animate-ping' : 'bg-zinc-600'}`} />
         <span className="font-mono font-black text-amber-300 text-sm">{formattedTime}</span>
@@ -101,7 +101,7 @@ export const RestTimerModal: React.FC<RestTimerProps> = ({
   return (
     <div
       id="rest-timer-docked"
-      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-80 bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200"
+      className="fixed bottom-24 right-4 sm:bottom-24 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-80 bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200"
     >
       {/* Header */}
       <div className="px-4 py-2.5 bg-zinc-850/80 border-b border-zinc-800 flex items-center justify-between">

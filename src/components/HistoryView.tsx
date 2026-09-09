@@ -126,7 +126,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   }, 0);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fadeIn overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 pb-28 sm:pt-4 sm:px-4 sm:pb-28 animate-fadeIn overflow-y-auto">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl my-4 max-h-[92vh] flex flex-col text-zinc-100">
         {/* Modal Header */}
         <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-850 shrink-0">
@@ -432,6 +432,19 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                               </div>
                             </div>
                           ))}
+                          
+                          {onLoadSession && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onLoadSession(sess);
+                              }}
+                              className="w-full mt-2 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                            >
+                              <Activity className="w-4 h-4" />
+                              Editar Este Treino
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

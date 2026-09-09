@@ -394,7 +394,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 pb-28 sm:pt-4 sm:px-4 sm:pb-28 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
         id="workout-calendar-modal"
         className="relative w-full max-w-5xl bg-zinc-950 border border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh] text-zinc-100"
