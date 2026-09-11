@@ -615,7 +615,7 @@ export default function App() {
       <WorkoutHeader
         session={currentSession}
         onSelectTemplate={handleSelectTemplate}
-        templates={templates.map((t) => ({ id: t.id, title: t.title, tag: t.tag }))}
+        templates={templates.map((t) => ({ id: t.id, title: t.title, tag: t.tag, plan: t.plan }))}
         onDateChange={handleDateChange}
         onTimeChange={handleTimeChange}
         onFinishWorkout={handleFinishWorkout}

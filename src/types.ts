@@ -22,6 +22,7 @@ export interface Exercise {
 
 export interface WorkoutTemplate {
   id: string;
+  plan?: 'A' | 'B';
   title: string;
   subtitle: string;
   tag: string;

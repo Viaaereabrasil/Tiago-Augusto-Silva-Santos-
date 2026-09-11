@@ -230,7 +230,9 @@ export const TodayWorkoutFloatingWidget: React.FC<TodayWorkoutFloatingWidgetProp
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-              {templates.map((tpl) => {
+              
+              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-wider pt-1">Plano Principal</div>
+              {templates.filter(t => t.plan === 'A' || !t.plan).map((tpl) => {
                 const isSelected = scheduledToday.templateId === tpl.id;
                 return (
                   <button
@@ -251,6 +253,11 @@ export const TodayWorkoutFloatingWidget: React.FC<TodayWorkoutFloatingWidgetProp
                   </button>
                 );
               })}
+              
+
+              {/* Plano B was moved to an inner tab in the workout screen, hiding from main floating widget list */}
+
+
             </div>
           </div>
         )}

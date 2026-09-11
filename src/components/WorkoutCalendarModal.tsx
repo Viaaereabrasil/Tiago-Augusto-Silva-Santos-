@@ -798,7 +798,9 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
                     Treino Programado para esta data:
                   </label>
                   <div className="grid grid-cols-1 gap-1.5">
-                    {templates.map((tpl) => {
+                    
+                    <div className="text-[10px] font-bold text-amber-500 uppercase tracking-wider pt-2">Plano Principal</div>
+                    {templates.filter(t => t.plan === 'A' || !t.plan).map((tpl) => {
                       const isSelected = selectedDateScheduled.templateId === tpl.id && !selectedDateScheduled.isRest;
                       return (
                         <button
@@ -815,6 +817,9 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
                         </button>
                       );
                     })}
+
+                    {/* Plano B was moved to an inner tab in the workout screen, hiding from main calendar list */}
+
                     <button
                       onClick={() => handleUpdateCustomDay(selectedDateStr, 'rest')}
                       className={`p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
@@ -1152,9 +1157,12 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
                       id="add-continuous-template"
                       className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-amber-500"
                     >
-                      {templates.map(t => (
-                        <option key={t.id} value={t.id}>{t.title}</option>
-                      ))}
+                      <optgroup label="Plano Principal">
+                        {templates.filter(t => t.plan === 'A' || !t.plan).map(t => (
+                          <option key={t.id} value={t.id}>{t.title}</option>
+                        ))}
+                      </optgroup>
+                      {/* Plano B omitted from continuous rotation */}
                     </select>
                     <button
                       onClick={() => {

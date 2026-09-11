@@ -34,7 +34,7 @@ import { parseSessionTimestamp } from '../utils/storage';
 interface WorkoutHeaderProps {
   session: WorkoutSession;
   onSelectTemplate: (templateId: string) => void;
-  templates: { id: string; title: string; tag: string }[];
+  templates: { id: string; title: string; tag: string; plan?: 'A' | 'B' }[];
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
   onFinishWorkout: () => void;
@@ -91,6 +91,7 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
   totalTonnage,
 }) => {
   const [liveClockTime, setLiveClockTime] = useState<string>('');
+  const [showAlt, setShowAlt] = useState(false);
 
   // Live real-time clock (Hora Certa)
   useEffect(() => {
@@ -332,9 +333,9 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
         </div>
 
         {/* Workout Navigation Tabs with automatic wrapping & comfortable spacing */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-zinc-800/80">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1">
-            {templates.map((tpl) => {
+        <div className="flex flex-col gap-2 pt-2.5 border-t border-zinc-800/80 relative">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {templates.filter(t => t.plan === 'A' || !t.plan).map((tpl) => {
               const isActive = session.templateId === tpl.id;
               return (
                 <button
@@ -352,9 +353,56 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
                 </button>
               );
             })}
+            
+            <div className="w-px h-6 bg-zinc-700 mx-1 hidden sm:block"></div>
+            
+            {/* The "Treino Alternativo" dropdown button */}
+            <div className="relative z-10">
+              <button
+                onClick={() => setShowAlt(!showAlt)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 active:scale-95 ${
+                  showAlt || session.templateId.endsWith('-b')
+                    ? 'bg-zinc-700 text-zinc-200 border-zinc-600 border'
+                    : 'bg-zinc-800/50 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-750 border border-zinc-800/80'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Treino Alternativo</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showAlt ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {/* Dropdown Menu */}
+              {showAlt && (
+                <div className="absolute top-full left-0 mt-2 w-56 sm:w-64 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden flex flex-col z-[100]">
+                  <div className="px-3 pt-3 pb-1 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                    Opções Plano B
+                  </div>
+                  {templates.filter(t => t.plan === 'B').map((tpl) => {
+                    const isActive = session.templateId === tpl.id;
+                    return (
+                      <button
+                        key={tpl.id}
+                        onClick={() => {
+                          onSelectTemplate(tpl.id);
+                          setShowAlt(false);
+                        }}
+                        className={`px-3 py-2.5 text-left text-xs font-bold transition flex items-center justify-between border-b border-zinc-700/30 last:border-0 ${
+                          isActive
+                            ? 'bg-zinc-700 text-amber-400'
+                            : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white'
+                        }`}
+                      >
+                        <span className="truncate pr-2">{tpl.title.replace(' (Plano B)', '')}</span>
+                        {isActive && <CheckCircle2 className="w-4 h-4 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-
-          <div className="flex items-center gap-2 shrink-0">
+          
+          <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:absolute sm:right-0 sm:top-2.5">
             <button
               id="btn-reset-workout"
               onClick={onResetWorkout}
@@ -364,8 +412,6 @@ export const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Reiniciar</span>
             </button>
-
-
           </div>
         </div>
 
