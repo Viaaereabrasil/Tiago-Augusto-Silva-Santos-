@@ -501,13 +501,22 @@ export default function App() {
   };
 
   const executeResetWorkout = () => {
-    setCurrentSession((prev) => ({
-      ...prev,
-      exercises: prev.exercises.map((ex) => ({
-        ...ex,
-        sets: ex.sets.map((s) => ({ ...s, completed: false })),
-      })),
-    }));
+    setCurrentSession((prev) => {
+      const tpl = templates.find((t) => t.id === prev.templateId);
+      if (tpl) {
+        return {
+          ...prev,
+          exercises: JSON.parse(JSON.stringify(tpl.exercises)),
+        };
+      }
+      return {
+        ...prev,
+        exercises: prev.exercises.map((ex) => ({
+          ...ex,
+          sets: ex.sets.map((s) => ({ ...s, completed: false })),
+        })),
+      };
+    });
     setShowResetConfirmModal(false);
   };
 

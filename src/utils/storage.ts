@@ -435,9 +435,16 @@ export function loadTemplates(): WorkoutTemplate[] {
         // Merge missing default templates (like superior-b and inferiores-b)
         let hasNew = false;
         const merged = [...parsed];
+        // FORCE OVERWRITE WITH LATEST TEMPLATES TO ENSURE CORRECT DATA
         for (const defaultTpl of INITIAL_WORKOUT_TEMPLATES) {
-          const exists = merged.some((t) => t.id === defaultTpl.id);
-          if (!exists) {
+          const idx = merged.findIndex((t) => t.id === defaultTpl.id);
+          if (idx !== -1) {
+            // Se já existe mas está desatualizado (não tem o "plan" correto, ou precisa ser forçado pra nova ficha)
+            if (JSON.stringify(merged[idx]) !== JSON.stringify(defaultTpl)) {
+              merged[idx] = defaultTpl;
+              hasNew = true;
+            }
+          } else {
             merged.push(defaultTpl);
             hasNew = true;
           }
@@ -487,7 +494,30 @@ export function loadCurrentSession(): WorkoutSession | null {
   try {
     const data = localStorage.getItem(CURRENT_SESSION_KEY);
     if (data) {
-      return JSON.parse(data);
+      const session = JSON.parse(data);
+      
+      // AUTO-SYNC MIGRATION: Ensure current session has the latest target reps/rir from INITIAL_WORKOUT_TEMPLATES
+      const template = INITIAL_WORKOUT_TEMPLATES.find(t => t.id === session.templateId);
+      if (template) {
+         session.exercises.forEach((ex, i) => {
+            const tplEx = template.exercises[i];
+            if (tplEx && ex.id === tplEx.id) {
+               ex.sets.forEach((set, j) => {
+                  const tplSet = tplEx.sets[j];
+                  if (tplSet && set.id === tplSet.id) {
+                     set.targetReps = tplSet.targetReps;
+                     set.rir = tplSet.rir;
+                     // We update actualReps too if they haven't completed it, so the UI shows the new target by default
+                     if (!set.completed) {
+                        set.actualReps = tplSet.targetReps;
+                     }
+                  }
+               });
+            }
+         });
+      }
+      
+      return session;
     }
   } catch (err) {
     console.error('Error loading current session:', err);
